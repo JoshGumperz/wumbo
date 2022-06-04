@@ -6,16 +6,33 @@ const jwt = require("jsonwebtoken")
 
 // CREATE NEW USER -> /API/USER/REGISTER 
 router.post('/register', async (req, res) => {
-    const newUser = new User({
-        username: req.body.username,
-        email: req.body.email,
-        password: CryptoJS.AES.encrypt(req.body.password, process.env.PASS_PHRASE).toString()
-    })
-
     try {
-        savedUser = await newUser.save()
-        res.status(201).json(savedUser)
+        let savedUser
+        if(req.body.username && req.body.email && req.body.password) {
+                const newUser = new User({
+                    username: req.body.username,
+                    email: req.body.email,
+                    password: CryptoJS.AES.encrypt(req.body.password, process.env.PASS_PHRASE).toString()
+                })
+                savedUser = await newUser.save()
+            } else {
+            res.status(400).json({ message: "Missing Credentials" });
+            return;
+            }
+        const {password, ...others} = savedUser._doc
+        const accessToken = jwt.sign({
+            id: savedUser._id,
+            admin: savedUser.isAdmin
+        }, 
+        process.env.JWT_SEC,
+        {expiresIn:"1d"}
+        )
+        res.status(201).json({...others, accessToken});    
     } catch (err) {
+        if(err.code === 11000) {
+            res.status(401).json({message: "User Already Exists"})
+            return;
+        }
         res.status(500).json(err)
     }
 })
