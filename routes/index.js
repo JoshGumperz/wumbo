@@ -3,8 +3,7 @@ const apiRoutes = require('./api');
 
 router.use('/api', apiRoutes);
 router.get('/', (req, res) => {
-    res.status(200).json({ message: '/ routes' })
-    return
+    res.send('/ routes')
 })
 
 module.exports = router;
