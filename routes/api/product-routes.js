@@ -1,8 +1,7 @@
 const router = require('express').Router();
-const CryptoJS = require("crypto-js")
-const jwt = require("jsonwebtoken");
-const { verifyTokenAndAuthorization, verifyTokenAndAdmin } = require('../../utils/verifyToken');
+const { verifyTokenAndAdmin } = require('../../utils/verifyToken');
 const Product = require('../../models/Product');
+const { searchQuery } = require('../../utils/queries');
 
 
 // CREATE NEW PRODUCT -> /API/PRODUCT/
@@ -49,10 +48,16 @@ router.delete('/:id', verifyTokenAndAdmin, async (req, res) => {
     }
 })
 
-// GET ALL PRODUCTS -> /API/PRODUCT/
+// GET ALL PRODUCTS *OR* SEARCH ALL PRODUCTS -> /API/PRODUCT/
 router.get('/', async (req, res) => {
+    const search = req.query.search
+    let products
     try {
-        const products = await Product.find();
+        if(search) {
+            products = await searchQuery(search)
+        } else {
+            products = await Product.find();
+        }
         res.status(200).json(products)
     } catch (err) {
         console.log(err);       
@@ -61,7 +66,7 @@ router.get('/', async (req, res) => {
 })
 
 
-// GET SPECIFIC PRODUCT -> /API/PRODUCT/:id
+// GET PRODUCT BY ID -> /API/PRODUCT/:id
 router.get('/:id', async (req, res) => {
     try {
         const product = await Product.findById(req.params.id) 
