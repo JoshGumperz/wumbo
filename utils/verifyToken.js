@@ -21,9 +21,19 @@ const verifyTokenAndAuthorization = (req, res, next) => {
         if(req.data.id === req.params.id || req.data.isAdmin) {
             next();
         } else {
-            res.status(403).json({ message: "You are not allowed to do that" })
+            return res.status(403).json({ message: "You are not allowed to do that" })
         }
     })
 }
 
-module.exports = { verifyToken, verifyTokenAndAuthorization }
+const verifyTokenAndAdmin = (req, res, next) => {
+    verifyToken(req, res, () => {
+        if(req.data.admin) {
+            next();
+        } else {
+            return res.status(403).json({ message: "You are not allowed to do that" })
+        }
+    })
+}
+
+module.exports = { verifyToken, verifyTokenAndAuthorization, verifyTokenAndAdmin }

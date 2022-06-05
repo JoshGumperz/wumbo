@@ -2,7 +2,7 @@ const router = require('express').Router();
 const User = require("../../models/User")
 const CryptoJS = require("crypto-js")
 const jwt = require("jsonwebtoken");
-const { verifyTokenAndAuthorization } = require('../../utils/verifyToken');
+const { verifyTokenAndAuthorization, verifyTokenAndAdmin } = require('../../utils/verifyToken');
 
 
 // CREATE NEW USER -> /API/USER/REGISTER 
@@ -35,7 +35,7 @@ router.post('/register', async (req, res) => {
             return;
         }
         console.log(err);
-        res.status(500).json(err);
+        return res.status(500).json(err);
     }
 })
 
@@ -71,7 +71,7 @@ router.post('/login', async (req, res) => {
         res.status(200).json({...others, accessToken});    
     } catch (err) {
         console.log(err);
-        res.status(500).json(err);  
+        return res.status(500).json(err);  
     }
 })
 
@@ -91,8 +91,44 @@ router.put('/:id', verifyTokenAndAuthorization, async (req, res) => {
         res.status(200).json(others);
     } catch (err) {
         console.log(err);
-        res.status(500).json(err);  
+        return res.status(500).json(err);  
     }
 })
+
+// DELETE USER -> /API/USER/:id
+router.delete('/:id', verifyTokenAndAuthorization, async (req, res) => {
+    try {
+        await User.findByIdAndDelete(req.params.id)
+        res.status(200).json({message: "user deleted successfully"})
+    } catch (err) {
+        console.log(err);
+        return res.status(500).json(err);  
+    }
+})
+
+// GET ALL USERS -> /APU/USER/FIND
+router.get('/find', verifyTokenAndAdmin, async (req, res) => {
+    try {
+        const users = await User.find();
+        res.status(200).json(users)
+    } catch (err) {
+        console.log(err);       
+        return res.status(500).json(err);
+    }
+})
+
+
+// GET SPECIFIC USER -> /API/USER/FIND/:id
+router.get('/find/:id', verifyTokenAndAdmin, async (req, res) => {
+    try {
+        const user = await User.findById(req.params.id) 
+        const {password, ...others} = user._doc
+        res.status(200).json(others)
+    } catch (err) {
+        console.log(err);
+        return res.status(500).json(err);
+    }
+})
+
 
 module.exports = router;
