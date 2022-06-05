@@ -1,7 +1,8 @@
 const router = require('express').Router();
 const User = require("../../models/User")
 const CryptoJS = require("crypto-js")
-const jwt = require("jsonwebtoken")
+const jwt = require("jsonwebtoken");
+const { verifyTokenAndAuthorization } = require('../../utils/verifyToken');
 
 
 // CREATE NEW USER -> /API/USER/REGISTER 
@@ -30,10 +31,11 @@ router.post('/register', async (req, res) => {
         res.status(201).json({...others, accessToken});    
     } catch (err) {
         if(err.code === 11000) {
-            res.status(401).json({message: "User Already Exists"})
+            res.status(402).json({message: "User Already Exists"})
             return;
         }
-        res.status(500).json(err)
+        console.log(err);
+        res.status(500).json(err);
     }
 })
 
@@ -68,7 +70,28 @@ router.post('/login', async (req, res) => {
 
         res.status(200).json({...others, accessToken});    
     } catch (err) {
-        res.status(500).json(err);
+        console.log(err);
+        res.status(500).json(err);  
+    }
+})
+
+// EDIT USER -> /API/USER/:id
+router.put('/:id', verifyTokenAndAuthorization, async (req, res) => {
+    if (req.body.password) {
+        req.body.password = CryptoJS.AES.encrypt(req.body.password, process.env.PASS_PHRASE).toString();
+    }
+
+    try {
+        const updatedUser = await User.findByIdAndUpdate(req.params.id, {
+            $set: req.body
+        }, {new: true})
+
+        const {password, ...others} = updatedUser._doc
+
+        res.status(200).json(others);
+    } catch (err) {
+        console.log(err);
+        res.status(500).json(err);  
     }
 })
 
