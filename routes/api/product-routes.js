@@ -4,11 +4,11 @@ const Product = require('../../models/Product');
 const { searchQuery } = require('../../utils/queries');
 
 
-// CREATE NEW PRODUCT -> /API/PRODUCT/
+// CREATE NEW PRODUCT -> /API/PRODUCT
 router.post('/', verifyTokenAndAdmin, async (req, res) => {
     try {
         const newProduct = new Product(req.body)
-        savedProduct = await newProduct.save()
+        const savedProduct = await newProduct.save()
         res.status(201).json(savedProduct);    
     } catch (err) {
         if(err.code === 11000) {
@@ -48,7 +48,7 @@ router.delete('/:id', verifyTokenAndAdmin, async (req, res) => {
     }
 })
 
-// GET ALL PRODUCTS *OR* SEARCH ALL PRODUCTS -> /API/PRODUCT/
+// GET ALL PRODUCTS *OR* SEARCH ALL PRODUCTS -> /API/PRODUCT
 router.get('/', async (req, res) => {
     const search = req.query.search
     let products

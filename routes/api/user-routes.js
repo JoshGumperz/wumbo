@@ -2,7 +2,7 @@ const router = require('express').Router();
 const User = require("../../models/User")
 const CryptoJS = require("crypto-js")
 const jwt = require("jsonwebtoken");
-const { verifyTokenAndAuthorization, verifyTokenAndAdmin } = require('../../utils/verifyToken');
+const { verifyTokenAndAuthorization, verifyTokenAndAdmin, verifyToken, getToken } = require('../../utils/verifyToken');
 
 
 // CREATE NEW USER -> /API/USER/REGISTER 
@@ -73,6 +73,15 @@ router.post('/login', async (req, res) => {
         console.log(err);
         return res.status(500).json(err);  
     }
+})
+
+// LOGOUT -> /API/USER/LOGOUT
+router.post('/logout', async (req, res) => {
+    if (getToken(req)) {
+          res.status(204).json({message: "logged out"}).end();
+      } else {
+        res.status(401).json({message: "you must log in before you can logout"}).end();
+      }
 })
 
 // EDIT USER -> /API/USER/:id
